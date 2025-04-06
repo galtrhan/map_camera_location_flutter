@@ -129,7 +129,7 @@ class _MapCameraLocationState extends State<MapCameraLocation> {
     // Initialize the camera controller
     _controller = CameraController(
       widget.camera,
-      ResolutionPreset.medium,
+      ResolutionPreset.high,
     );
     _initializeControllerFuture = _controller.initialize();
     _followOnLocationUpdate = AlignOnUpdate.always;
@@ -169,96 +169,19 @@ class _MapCameraLocationState extends State<MapCameraLocation> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Center(
-              child: RepaintBoundary(
-                key: globalKey,
-                child: Stack(
-                  children: [
-                    CameraPreview(
-                      _controller,
+              child: Stack(
+                children: [
+                  _buildCameraPreview(context),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 10,
+                    child: RepaintBoundary(
+                      key: globalKey,
+                      child: _buildInfoBlock(context),
                     ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 10,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 160,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: Card(
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0)),
-                                    child: SizedBox(
-                                      // height: 130,
-                                      width: 120,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(5.0),
-                                        child: locationData == null
-                                            ? const Center(
-                                                child:
-                                                    CircularProgressIndicator())
-                                            : FlutterMap(
-                                                options: MapOptions(
-                                                  initialCenter:
-                                                      const lat.LatLng(0, 0),
-                                                  initialZoom: 13.0,
-                                                  onPositionChanged: (position,
-                                                      bool hasGesture) {
-                                                    if (hasGesture) {
-                                                      setState(
-                                                        () =>
-                                                            _followOnLocationUpdate =
-                                                                AlignOnUpdate
-                                                                    .never,
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                                children: [
-                                                  TileLayer(
-                                                    urlTemplate:
-                                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                                    userAgentPackageName:
-                                                        'com.example.app',
-                                                    minZoom: 12,
-                                                  ),
-                                                  CurrentLocationLayer(
-                                                    alignPositionStream:
-                                                        _followCurrentLocationStreamController
-                                                            .stream,
-                                                    alignPositionOnUpdate:
-                                                        _followOnLocationUpdate,
-                                                  ),
-                                                ],
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: LocationDetailsWidget(
-                                      locationData: locationData,
-                                      dateTime: dateTime),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           } else {
@@ -282,50 +205,178 @@ class _MapCameraLocationState extends State<MapCameraLocation> {
     );
   }
 
-  /// Takes a screenshot of the current screen and saves it as an image file.
+  Widget _buildCameraPreview(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = MediaQuery.of(context).size;
+        final previewSize = _controller.value.previewSize;
+        if (previewSize == null) return const SizedBox();
+
+        // For portrait mode, we need to use height/width to get the correct aspect ratio
+        final cameraRatio = previewSize.width / previewSize.height;
+
+        return SizedBox.expand(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: size.width,
+              height: size.width * cameraRatio,
+              child: CameraPreview(_controller),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoBlock(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 160,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0)),
+                  child: SizedBox(
+                    // height: 130,
+                    width: 120,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: locationData == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : FlutterMap(
+                              options: MapOptions(
+                                initialCenter: const lat.LatLng(0, 0),
+                                initialZoom: 13.0,
+                                onPositionChanged: (position, bool hasGesture) {
+                                  if (hasGesture) {
+                                    setState(
+                                      () => _followOnLocationUpdate =
+                                          AlignOnUpdate.never,
+                                    );
+                                  }
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.app',
+                                  minZoom: 12,
+                                ),
+                                CurrentLocationLayer(
+                                  alignPositionStream:
+                                      _followCurrentLocationStreamController
+                                          .stream,
+                                  alignPositionOnUpdate:
+                                      _followOnLocationUpdate,
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: LocationDetailsWidget(
+                    locationData: locationData, dateTime: dateTime),
+              ),
+              const SizedBox(
+                width: 10,
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Takes a picture using the camera and saves it as an image file.
   /// Returns the file path of the captured image and triggers the [onImageCaptured]
   /// callback if provided.
-  /// Throws an exception if there is an error capturing the screenshot.
+  /// Throws an exception if there is an error capturing the picture.
   Future<void> takeScreenshot() async {
-    var rng = Random();
+    try {
+      // Take the picture using the camera controller
+      final XFile photo = await _controller.takePicture();
 
-    // Get the render boundary of the widget
-    final RenderRepaintBoundary boundary =
-        globalKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      // Capture the info block screenshot
+      final RenderRepaintBoundary boundary = globalKey.currentContext!
+          .findRenderObject()! as RenderRepaintBoundary;
+      final ui.Image infoBlockImage = await boundary.toImage(pixelRatio: 4);
+      final ByteData? infoBlockBytes =
+          await infoBlockImage.toByteData(format: ui.ImageByteFormat.png);
+      final Uint8List infoBlockPngBytes = infoBlockBytes!.buffer.asUint8List();
 
-    // Capture the screen as an image
-    ui.Image image = await boundary.toImage();
-    final directory = (await getApplicationDocumentsDirectory()).path;
+      // Load the camera photo
+      final File photoFile = File(photo.path);
+      final ui.Image cameraImage =
+          await decodeImageFromList(await photoFile.readAsBytes());
 
-    // Convert the image to bytes in PNG format
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List pngBytes = byteData!.buffer.asUint8List();
+      // Create a new image with the info block overlaid
+      final ui.PictureRecorder recorder = ui.PictureRecorder();
+      final Canvas canvas = Canvas(recorder);
 
-    // Generate a random file name for the screenshot
-    File imgFile = File('$directory/screenshot${rng.nextInt(200)}.png');
+      // Draw the camera photo
+      canvas.drawImage(cameraImage, Offset.zero, Paint());
 
-    // Write the bytes to the file
-    await imgFile.writeAsBytes(pngBytes);
+      // Calculate dynamic dimensions for the info block
+      final double minHeight = 300.0;
+      final double aspectRatio = infoBlockImage.width / infoBlockImage.height;
+      final double infoBlockHeight = minHeight;
+      final double infoBlockWidth = infoBlockHeight * aspectRatio;
+      final double padding = 50.0;
 
-    // Check if the file exists
-    bool isExists = imgFile.existsSync();
+      canvas.drawImageRect(
+        infoBlockImage,
+        Rect.fromLTWH(0, 0, infoBlockImage.width.toDouble(),
+            infoBlockImage.height.toDouble()),
+        Rect.fromLTWH(
+            cameraImage.width - infoBlockWidth - padding,
+            cameraImage.height - infoBlockHeight - padding,
+            infoBlockWidth,
+            infoBlockHeight),
+        Paint(),
+      );
 
-    if (isExists) {
+      // Convert the combined image to bytes with reduced quality
+      final ui.Image combinedImage = await recorder.endRecording().toImage(
+            cameraImage.width,
+            cameraImage.height,
+          );
+      final ByteData? combinedBytes =
+          await combinedImage.toByteData(format: ui.ImageByteFormat.png);
+      final Uint8List combinedPngBytes = combinedBytes!.buffer.asUint8List();
+
+      // Save the combined image
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String combinedPath =
+          '${(await getApplicationDocumentsDirectory()).path}/photo_with_info_$timestamp.png';
+      final File combinedFile = File(combinedPath);
+      await combinedFile.writeAsBytes(combinedPngBytes);
+
       // Set the file path of the captured image
       setState(() {
-        cameraImagePath = imgFile;
+        cameraImagePath = combinedFile;
       });
 
       // Trigger the image captured callback
       if (widget.onImageCaptured != null) {
         ImageAndLocationData data = ImageAndLocationData(
-          imagePath: imgFile.path,
+          imagePath: combinedPath,
           locationData: locationData,
         );
         widget.onImageCaptured!(data);
       }
-    } else {
-      debugPrint('File does not exist');
+    } catch (e) {
+      debugPrint('Error taking picture: $e');
     }
   }
 
