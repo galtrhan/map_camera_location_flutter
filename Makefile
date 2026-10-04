@@ -1,5 +1,5 @@
 .PHONY: help get analyze test clean \
-	build-apk run-debug run-release run run-attach _run-emulator \
+	build-apk build-aab run-debug run-release run run-attach _run-emulator \
 	emulator-setup emulator-list emulator-start emulator-start-phone \
 	emulator-start-tablet7 emulator-start-tablet10 emulator-stop \
 	emulator-status emulator-wait \
@@ -43,6 +43,7 @@ help:
 	@echo ""
 	@echo "EXAMPLE APP:"
 	@echo "  make build-apk          Build example release APK"
+	@echo "  make build-aab          Build example release app bundle"
 	@echo "  make run                Install+launch on emulator, then exit"
 	@echo "  make run-attach         Interactive flutter run (hot reload)"
 	@echo "  make run-debug          Interactive run on a connected device"
@@ -90,6 +91,11 @@ build-apk: get
 	@echo "Building example APK release..."
 	cd example && $(FLUTTER_CMD) build apk --release
 	@echo "APK ready: example/build/app/outputs/flutter-apk/app-release.apk"
+
+build-aab: get
+	@echo "Building example AAB release..."
+	cd example && $(FLUTTER_CMD) build appbundle --release
+	@echo "AAB ready: example/build/app/outputs/bundle/release/app-release.aab"
 
 run-debug:
 	@echo "Running example (debug, interactive)..."
