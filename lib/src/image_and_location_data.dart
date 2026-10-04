@@ -1,3 +1,5 @@
+import 'package:geocoding/geocoding.dart';
+
 class ImageAndLocationData {
   final String? imagePath;
   final LocationData? locationData;
@@ -10,23 +12,18 @@ class ImageAndLocationData {
     required this.imagePath,
     required this.locationData,
   });
+
+  @override
+  String toString() =>
+      'ImageAndLocationData(imagePath: $imagePath, latitude: $latitude, '
+      'longitude: $longitude, locationName: $locationName, '
+      'subLocation: $subLocation)';
 }
 
 class LocationData {
-  /// Latitude value of the current location as a string.
-
   final String? latitude;
-
-  /// Longitude value of the current location as a string.
-
   final String? longitude;
-
-  /// Name of the current location as a string.
-
   final String? locationName;
-
-  /// SubLocation of the current location as a string.
-
   final String? subLocation;
 
   LocationData({
@@ -35,6 +32,40 @@ class LocationData {
     required this.locationName,
     required this.subLocation,
   });
+
+  factory LocationData.unavailable(String locationName) => LocationData(
+        latitude: null,
+        longitude: null,
+        locationName: locationName,
+        subLocation: '',
+      );
+
+  factory LocationData.fromPlacemark({
+    required double latitude,
+    required double longitude,
+    required Placemark placeMark,
+  }) {
+    return LocationData(
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      locationName:
+          '${placeMark.locality ?? ''}, ${placeMark.administrativeArea ?? ''}, ${placeMark.country ?? ''}',
+      subLocation:
+          '${placeMark.street ?? ''}, ${placeMark.thoroughfare ?? ''} ${placeMark.administrativeArea ?? ''}',
+    );
+  }
+
+  LocationData withCoordinates({
+    required double latitude,
+    required double longitude,
+  }) {
+    return LocationData(
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      locationName: locationName,
+      subLocation: subLocation,
+    );
+  }
 
   @override
   bool operator ==(Object other) {

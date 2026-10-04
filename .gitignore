@@ -21,10 +21,31 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
+# Local agent / CI notes (keep private; run tooling locally)
+AGENTS.md
+.github/
+
 # Flutter/Dart/Pub related
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
 /pubspec.lock
 **/doc/api/
 .dart_tool/
 .packages
+.flutter-plugins
+.flutter-plugins-dependencies
 build/
+**/ephemeral/
+**/local.properties
+
+# Signing / secrets (never commit)
+**/key.properties
+**/*.jks
+**/*.keystore
+*.pem
+.env
+.env.*
+
+# FVM (keep fvm_config.json in version control)
+.fvm/flutter_sdk
+.fvm/versions
+.fvm/release

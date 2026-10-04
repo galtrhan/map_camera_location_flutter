@@ -8,7 +8,7 @@ class LocationDetailsWidget extends StatelessWidget {
   });
 
   final LocationData? locationData;
-  final String? dateTime;
+  final String dateTime;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +28,7 @@ class LocationDetailsWidget extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(
-            height: 5,
-          ),
+          const SizedBox(height: 5),
           Text(
             locationData?.subLocation ?? "Loading ..",
             maxLines: 2,
@@ -39,9 +37,7 @@ class LocationDetailsWidget extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(
-            height: 5,
-          ),
+          const SizedBox(height: 5),
           Text(
             "Lat ${locationData?.latitude ?? "Loading.."}",
             maxLines: 2,
@@ -50,9 +46,7 @@ class LocationDetailsWidget extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(
-            height: 5,
-          ),
+          const SizedBox(height: 5),
           Text(
             "Long ${locationData?.longitude ?? "Loading.."}",
             maxLines: 2,
@@ -61,11 +55,9 @@ class LocationDetailsWidget extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(
-            height: 5,
-          ),
+          const SizedBox(height: 5),
           Text(
-            dateTime ?? "Loading...",
+            dateTime,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             softWrap: false,
