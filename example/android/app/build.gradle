@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace "com.example.example"
+    namespace "app.map_camera"
     // permission_handler_android requires API 37+.
     compileSdk 37
     ndkVersion flutter.ndkVersion
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.example"
+        applicationId "app.map_camera"
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode

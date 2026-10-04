@@ -13,32 +13,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Map Camera Example',
+      title: 'Map Camera',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(
-        title: 'Camera With Map Location',
-        camera: camera,
-      ),
+      home: MyHomePage(camera: camera),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title, required this.camera});
+  const MyHomePage({super.key, required this.camera});
 
   final CameraDescription camera;
-  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
+        title: const Text('Map Camera'),
       ),
       body: MapCameraLocation(
         camera: camera,
