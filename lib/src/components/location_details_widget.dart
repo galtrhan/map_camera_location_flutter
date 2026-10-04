@@ -10,62 +10,50 @@ class LocationDetailsWidget extends StatelessWidget {
   final LocationData? locationData;
   final String dateTime;
 
+  static const _panelDecoration = BoxDecoration(
+    borderRadius: BorderRadius.all(Radius.circular(8)),
+    color: Color(0x80000000),
+  );
+  static const _titleStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
+  static const _detailStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: Colors.black.withValues(alpha: 0.5)),
+      decoration: _panelDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            locationData?.locationName ?? "Loading...",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+          _line(locationData?.locationName ?? "Loading...", _titleStyle),
           const SizedBox(height: 5),
-          Text(
-            locationData?.subLocation ?? "Loading ..",
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          _line(locationData?.subLocation ?? "Loading ..", _detailStyle),
           const SizedBox(height: 5),
-          Text(
-            "Lat ${locationData?.latitude ?? "Loading.."}",
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          _line("Lat ${locationData?.latitude ?? "Loading.."}", _detailStyle),
           const SizedBox(height: 5),
-          Text(
-            "Long ${locationData?.longitude ?? "Loading.."}",
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          _line("Long ${locationData?.longitude ?? "Loading.."}", _detailStyle),
           const SizedBox(height: 5),
-          Text(
-            dateTime,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          _line(dateTime, _detailStyle),
         ],
       ),
+    );
+  }
+
+  Widget _line(String text, TextStyle style) {
+    return Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      softWrap: false,
+      style: style,
     );
   }
 }
