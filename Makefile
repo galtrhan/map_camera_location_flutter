@@ -87,12 +87,17 @@ clean:
 	cd example && flutter clean
 	@echo "Clean complete"
 
-build-apk: get
+example/android/key.properties:
+	@echo "Missing example/android/key.properties."
+	@echo "A Play upload needs a release keystore."
+	@exit 1
+
+build-apk: get example/android/key.properties
 	@echo "Building example APK release..."
 	cd example && $(FLUTTER_CMD) build apk --release
 	@echo "APK ready: example/build/app/outputs/flutter-apk/app-release.apk"
 
-build-aab: get
+build-aab: get example/android/key.properties
 	@echo "Building example AAB release..."
 	cd example && $(FLUTTER_CMD) build appbundle --release
 	@echo "AAB ready: example/build/app/outputs/bundle/release/app-release.aab"

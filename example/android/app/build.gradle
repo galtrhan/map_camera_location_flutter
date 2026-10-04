@@ -3,6 +3,12 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "app.map_camera"
     // permission_handler_android requires API 37+.
@@ -26,10 +32,22 @@ android {
         versionName flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties["keyAlias"]
+            keyPassword = keystoreProperties["keyPassword"]
+            storeFile = keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+            storePassword = keystoreProperties["storePassword"]
+        }
+    }
+
     buildTypes {
         release {
-            // Debug signing for local example builds.
-            signingConfig signingConfigs.debug
+            // Play rejects a debug-signed bundle. Use the upload key when
+            // example/android/key.properties exists.
+            signingConfig = keystorePropertiesFile.exists()
+                ? signingConfigs.release
+                : signingConfigs.debug
         }
     }
 }
