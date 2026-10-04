@@ -21,6 +21,8 @@ class ImageAndLocationData {
 }
 
 class LocationData {
+  static const unknownLocationName = 'Unknown location';
+
   final String? latitude;
   final String? longitude;
   final String? locationName;
@@ -39,6 +41,32 @@ class LocationData {
         locationName: locationName,
         subLocation: '',
       );
+
+  /// Coordinates only. Place names stay null until geocoding finishes.
+  factory LocationData.fromCoordinates({
+    required double latitude,
+    required double longitude,
+  }) {
+    return LocationData(
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      locationName: null,
+      subLocation: null,
+    );
+  }
+
+  /// Coordinates with a soft-fail place name when geocoding finds nothing.
+  factory LocationData.unknownPlace({
+    required double latitude,
+    required double longitude,
+  }) {
+    return LocationData(
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      locationName: unknownLocationName,
+      subLocation: '',
+    );
+  }
 
   factory LocationData.fromPlacemark({
     required double latitude,

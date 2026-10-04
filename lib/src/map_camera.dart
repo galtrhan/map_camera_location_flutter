@@ -25,6 +25,16 @@ class _OverlayView {
 
   final LocationData? locationData;
   final String dateTime;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _OverlayView &&
+        locationData == other.locationData &&
+        dateTime == other.dateTime;
+  }
+
+  @override
+  int get hashCode => Object.hash(locationData, dateTime);
 }
 
 class _MarkerFeed {
@@ -66,9 +76,11 @@ class _MapCameraLocationState extends State<MapCameraLocation>
     with WidgetsBindingObserver {
   static const _geocodeMinDistanceMeters = 25.0;
   static const _locationAccuracy = LocationAccuracy.medium;
+  /// Low accuracy locks faster for the first screen paint.
+  static const _firstFixAccuracy = LocationAccuracy.low;
   static const _distanceFilter = 15;
   static final _dateFormat = DateFormat.yMd().add_jm();
-  static const _oneShotFixLimit = Duration(seconds: 10);
+  static const _oneShotFixLimit = Duration(seconds: 8);
 
   CameraController? _controller;
   var _shooting = false;
@@ -479,7 +491,7 @@ class _MapCameraLocationState extends State<MapCameraLocation>
           .listen(
             _onPosition,
             onError: (Object error, StackTrace stackTrace) {
-              debugPrint('Location update failed: $error\n$stackTrace');
+              debugPrint('Location stream failed: $error\n$stackTrace');
               _showLocationError();
             },
           );
@@ -489,22 +501,34 @@ class _MapCameraLocationState extends State<MapCameraLocation>
         return;
       }
 
-      if (last != null) {
-        return;
+      // Race a fast low-accuracy fix against the stream. Do not block startup.
+      if (last == null) {
+        unawaited(_requestFirstFix());
       }
+    } on Exception catch (e, st) {
+      debugPrint('Location update failed: $e\n$st');
+      _showLocationError();
+    }
+  }
 
+  Future<void> _requestFirstFix() async {
+    try {
       final current = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: _locationAccuracy,
+          accuracy: _firstFixAccuracy,
           timeLimit: _oneShotFixLimit,
         ),
       );
-      if (_disposed) {
+      if (_disposed || _overlay.value.locationData?.latitude != null) {
+        // Stream already painted a fix.
         return;
       }
       _onPosition(current);
+    } on TimeoutException catch (e, st) {
+      // Stream may still deliver a fix. Keep waiting instead of showing error.
+      debugPrint('First location fix timed out: $e\n$st');
     } on Exception catch (e, st) {
-      debugPrint('Location update failed: $e\n$st');
+      debugPrint('First location fix failed: $e\n$st');
       _showLocationError();
     }
   }
@@ -515,6 +539,20 @@ class _MapCameraLocationState extends State<MapCameraLocation>
     }
     _markerFeed.add(position);
     _mapCenter.value ??= lat.LatLng(position.latitude, position.longitude);
+
+    final previous = _overlay.value.locationData;
+    final immediate = previous?.withCoordinates(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        ) ??
+        LocationData.fromCoordinates(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+    if (immediate != previous) {
+      _updateOverlay(locationData: immediate, dateTime: _formatNow());
+    }
+
     _queuedPosition = position;
     if (_geocodeBusy) {
       return;
@@ -557,8 +595,12 @@ class _MapCameraLocationState extends State<MapCameraLocation>
         if (_disposed) {
           return;
         }
+        // Keep coordinates. Do not wipe them with unavailable().
         if (placeMarks.isEmpty) {
-          next = LocationData.unavailable('No Location Data');
+          next = LocationData.unknownPlace(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          );
         } else {
           next = LocationData.fromPlacemark(
             latitude: position.latitude,
@@ -576,8 +618,16 @@ class _MapCameraLocationState extends State<MapCameraLocation>
 
       _updateOverlay(locationData: next, dateTime: _formatNow());
     } on Exception catch (e, st) {
-      debugPrint('Location update failed: $e\n$st');
-      _showLocationError();
+      // Platform geocoding can throw when offline or unsupported.
+      debugPrint('Geocode failed: $e\n$st');
+      if (_overlay.value.locationData?.locationName == null) {
+        _updateOverlay(
+          locationData: LocationData.unknownPlace(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          ),
+        );
+      }
     }
   }
 }

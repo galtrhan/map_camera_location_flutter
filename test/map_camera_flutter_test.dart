@@ -16,6 +16,14 @@ void main() {
       subLocation: 'Center',
     );
     final c = LocationData.unavailable('No Location Data');
+    final coords = LocationData.fromCoordinates(
+      latitude: 56.9,
+      longitude: 24.1,
+    );
+    final unknown = LocationData.unknownPlace(
+      latitude: 56.9,
+      longitude: 24.1,
+    );
     final fromPlace = LocationData.fromPlacemark(
       latitude: 56.9,
       longitude: 24.1,
@@ -33,6 +41,14 @@ void main() {
     expect(a == c, isFalse);
     expect(c.latitude, isNull);
     expect(c.subLocation, '');
+    expect(coords.latitude, '56.9');
+    expect(coords.locationName, isNull);
+    expect(unknown.locationName, LocationData.unknownLocationName);
+    expect(unknown.subLocation, '');
+    expect(
+      coords.withCoordinates(latitude: 57.0, longitude: 24.2).latitude,
+      '57.0',
+    );
     expect(fromPlace.locationName, contains('Riga'));
     expect(
       fromPlace.withCoordinates(latitude: 57.0, longitude: 24.2).latitude,
